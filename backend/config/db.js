@@ -1,6 +1,6 @@
 // config/db.js
-import mysql from 'mysql2';
-import dotenv from 'dotenv';
+import mysql from "mysql2";
+import dotenv from "dotenv";
 dotenv.config();
 
 const db = mysql.createPool({
@@ -10,4 +10,14 @@ const db = mysql.createPool({
   database: process.env.DB_NAME,
 });
 
+export const connectDB = () => {
+  db.getConnection((err, connection) => {
+    if (err) {
+      console.error("Error connecting to the database:", err.message);
+      return;
+    }
+    console.log("Database connected successfully");
+    connection.release(); // Libère la connexion après la vérification
+  });
+};
 export default db.promise();
