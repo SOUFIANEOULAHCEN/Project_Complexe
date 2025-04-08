@@ -53,7 +53,7 @@ export default function About() {
           <div className="lg:w-1/2 grid grid-cols-2 gap-6 relative">
             <div className="relative overflow-hidden rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500">
               <img
-                src="/assets/atelier-theater.jpg"
+                src="/src/assets/atelier-theater.jpg"
                 alt="Atelier Théâtre"
                 loading="lazy"
                 className="w-full h-[400px] object-cover transition-transform duration-700 hover:scale-110"
@@ -67,7 +67,7 @@ export default function About() {
             
             <div className="relative overflow-hidden rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 floating-image">
               <img
-                src="/assets/library.jpg"
+                src="/src/assets/library.jpg"
                 alt="Bibliothèque Culturelle"
                 loading="lazy"
                 className="w-full h-[400px] object-cover transition-transform duration-700 hover:scale-110"

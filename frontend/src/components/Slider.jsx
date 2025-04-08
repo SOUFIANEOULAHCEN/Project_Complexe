@@ -70,7 +70,7 @@ const Slider = () => {
       <SwiperSlide className="relative">
         <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70 z-10"></div>
         <img 
-          src="/assets/theater3.jpg" 
+          src="/src/assets/theater3.jpg" 
           alt="Slide 1" 
           className="w-full h-full object-cover object-center transition-transform duration-1000 ease-out swiper-lazy"
           loading="lazy"
@@ -100,7 +100,7 @@ const Slider = () => {
       <SwiperSlide className="relative">
         <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70 z-10"></div>
         <img 
-          src="/assets/atelier-theater.jpg" 
+          src="/src/assets/atelier-theater.jpg" 
           alt="Slide 2" 
           className="w-full h-full object-cover object-center transition-transform duration-1000 ease-out swiper-lazy"
           loading="lazy"
@@ -130,7 +130,7 @@ const Slider = () => {
       <SwiperSlide className="relative">
         <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70 z-10"></div>
         <img 
-          src="/assets/theater5.jpg" 
+          src="/src/assets/theater5.jpg" 
           alt="Slide 3" 
           className="w-full h-full object-cover object-center transition-transform duration-1000 ease-out swiper-lazy"
           loading="lazy"

@@ -11,28 +11,28 @@ const workshops = [
   {
     id: 1,
     title: "Atelier de Peinture",
-    image: "/assets/art.jpeg",
+    image: "/src/assets/art.jpeg",
     description: "Découvrez l'art de la peinture et exprimez votre créativité",
     category: "Arts Visuels"
   },
   {
     id: 2,
     title: "Atelier de Musique",
-    image: "/assets/music.jpg",
+    image: "/src/assets/music.jpg",
     description: "Apprenez à jouer des instruments avec nos professeurs expérimentés",
     category: "Musique"
   },
   {
     id: 3,
     title: "Atelier de Théâtre",
-    image: "/assets/atelier-theater.jpg",
+    image: "/src/assets/atelier-theater.jpg",
     description: "Explorez l'art dramatique et développez votre confiance en scène",
     category: "Arts de la Scène"
   },
   {
     id: 4,
     title: "Atelier de Danse",
-    image: "/assets/danse.jpg",
+    image: "/src/assets/danse.jpg",
     description: "Initiez-vous à différents styles de danse dans une ambiance conviviale",
     category: "Danse"
   },

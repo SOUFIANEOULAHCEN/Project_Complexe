@@ -1,7 +1,7 @@
 import { Facebook, Instagram, Youtube, Twitter } from "lucide-react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay } from "swiper/modules";
-import "swiper/css";
+import { Swiper, SwiperSlide } from 'swiper/react';  // ✅ Correct (Swiper v10)
+import { Autoplay } from 'swiper/modules';           // ✅ Correct (Swiper v10)
+import 'swiper/css';                                 // ✅ Correct (Swiper v10)
 
 export default function Footer() {
   const logos = [

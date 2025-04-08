@@ -11,63 +11,63 @@ import "swiper/css/effect-coverflow"
 const events = [
   {
     id: 1,
-    image: "/assets/event1.jpg",
+    image: "/src/assets/event1.jpg",
     title: "Festival Tizouran",
     date: "20-21 Octobre 2024",
     location: "Ouarzazate"
   },
   {
     id: 2,
-    image: "/assets/event2.jpg",
+    image: "/src/assets/event2.jpg",
     title: "Festival du Tapis",
     date: "15-20 Mai 2024",
     location: "Zagora"
   },
   {
     id: 3,
-    image: "/assets/event3.jpg",
+    image: "/src/assets/event3.jpg",
     title: "Festival Igrar",
     date: "8-10 Mai 2024",
     location: "Tinghir"
   },
   {
     id: 4,
-    image: "/assets/event4.jpg",
+    image: "/src/assets/event4.jpg",
     title: "Festival D'ahwach",
     date: "24-26 Septembre 2024",
     location: "Taroudant"
   },
   {
     id: 5,
-    image: "/assets/event5.jpg",
+    image: "/src/assets/event5.jpg",
     title: "Festival Ayeed Asgas",
     date: "13-15 Janvier 2024",
     location: "Errachidia"
   },
   {
     id: 6,
-    image: "/assets/event3.jpg",
+    image: "/src/assets/event3.jpg",
     title: "Festival du Tapish",
     date: "24-26 Septembre 2024",
     location: "Marrakech"
   },
   {
     id: 7,
-    image: "/assets/event3.jpg",
+    image: "/src/assets/event3.jpg",
     title: "Festival du Tapish",
     date: "24-26 Septembre 2024",
     location: "Marrakech"
   },
   {
     id: 8,
-    image: "/assets/event3.jpg",
+    image: "/src/assets/event3.jpg",
     title: "Festival du Tapish",
     date: "24-26 Septembre 2024",
     location: "Marrakech"
   },
   {
     id: 9,
-    image: "/assets/event5.jpg",
+    image: "/src/assets/event5.jpg",
     title: "Festival Ayeed Asgas",
     date: "13-15 Janvier 2024",
     location: "Errachidia"

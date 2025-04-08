@@ -60,47 +60,56 @@ export default function Gallery() {
       alt: "Studio d'Art",
       category: "Ateliers"
     },
-  ]
+  ];
 
   return (
-    <section className="py-20 bg-gradient-to-b from-[#F9F5F0] to-[#F0E6D8]">
+    <section className="py-16 bg-gradient-to-b from-[#F9F5F0] to-[#F0E6D8]">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-serif text-[#8B4513] mb-4">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-serif text-[#8B4513] mb-3">
             Galeries du Complexe
           </h2>
-          <p className="text-xl text-[#6B4D3D] max-w-2xl mx-auto">
+          <p className="text-lg text-[#6B4D3D] max-w-2xl mx-auto">
             Découvrez nos espaces culturels à travers ces instantanés
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {images.map((image, index) => (
             <div
               key={image.id}
               className={`
-                relative group overflow-hidden rounded-xl shadow-2xl transition-all duration-500
+                relative group overflow-hidden rounded-xl shadow-lg
                 ${index === 2 ? "lg:col-span-2" : ""}
                 ${index === 5 ? "lg:row-span-2" : ""}
-                hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)]
               `}
             >
-              <div className="aspect-w-1 aspect-h-1 w-full h-full">
+              {/* Conteneur d'image optimisé */}
+              <div className="aspect-[3/2] w-full bg-gray-100">
                 <img
-                  src={image.src || "/placeholder.svg"}
+                  src={image.src}
                   alt={image.alt}
                   loading="lazy"
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
+                  style={{
+                    objectPosition: 'center',
+                    backfaceVisibility: 'hidden',
+                    transform: 'translateZ(0)'
+                  }}
                 />
               </div>
               
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6">
-                <div className="transform translate-y-8 group-hover:translate-y-0 transition-transform duration-500">
+              {/* Overlay amélioré */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5">
+                <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                   <span className="inline-block px-3 py-1 mb-2 text-xs font-semibold text-[#8B4513] bg-white rounded-full">
                     {image.category}
                   </span>
-                  <h3 className="text-xl font-bold text-white mb-1">{image.alt}</h3>
-                  <button className="mt-2 px-4 py-2 text-sm font-medium text-white bg-[#8B4513]/90 hover:bg-[#8B4513] rounded-lg transition-colors duration-300 flex items-center">
+                  <h3 className="text-xl font-bold text-white">{image.alt}</h3>
+                  <button 
+                    className="mt-3 px-4 py-2 text-sm font-medium text-white bg-[#8B4513]/90 hover:bg-[#8B4513] rounded-lg transition-all duration-200 flex items-center"
+                    aria-label={`Voir ${image.alt}`}
+                  >
                     Voir plus
                     <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -112,8 +121,8 @@ export default function Gallery() {
           ))}
         </div>
 
-        <div className="text-center mt-16">
-          <button className="px-8 py-3 bg-[#8B4513] hover:bg-[#6B4D3D] text-white font-medium rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+        <div className="text-center mt-14">
+          <button className="px-8 py-3 bg-[#8B4513] hover:bg-[#6B4D3D] text-white font-medium rounded-full shadow-md hover:shadow-lg transition-all duration-300">
             Voir toute la galerie
           </button>
         </div>
