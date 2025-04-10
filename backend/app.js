@@ -1,10 +1,17 @@
-import express from "express";
-import cors from "cors";
-
+const express = require('express');
 const app = express();
-app.use(express.json());
-const PORT = 3000;
-app.use(cors());
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+const bodyParser = require('body-parser');
+const reservationRoutes = require('./routes/reservationRoutes');
+
+// Middleware pour parser le JSON
+app.use(bodyParser.json());
+
+// Utilisation des routes
+
+app.use('/api', reservationRoutes);
+ // Préfixe de toutes les routes avec '/api'
+
+// Démarrer le serveur
+app.listen(3000, () => {
+  console.log('Server running on http://localhost:3000');
 });
