@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // src/App.js
 import { BrowserRouter as Router, Routes, Route ,Navigate} from 'react-router-dom';
 import SuperAdminLayout from './pages/Dashboards/superAdminDash/SuperAdminLayout';
@@ -46,3 +47,62 @@ function App() {
 }
 
 export default App;
+=======
+// src/App.jsx
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import LoginPage from "./pages/authentification/LoginPage";
+import DashboardUser from "./pages/Dashboards/DashboardUser";
+import DashboardAdmin from "./pages/Dashboards/DashboardAdmin";
+import DashboardSuperAdmin from "./pages/Dashboards/DashboardSuperAdmin";
+import ForgotPassword from "./pages/authentification/ForgotPassword";
+import ResetPassword from "./pages/authentification/ResetPassword";
+
+const ProtectedRoute = ({ children, roles }) => {
+  const { user } = useAuth(); //useContext(AuthContext);
+  if (!user) return <Navigate to="/login" />;
+  if (!roles.includes(user.typeUser)) return <Navigate to="/" />;
+  return children;
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route
+            path="/dashboard/user"
+            element={
+              <ProtectedRoute roles={["user"]}>
+                <DashboardUser />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/admin"
+            element={
+              <ProtectedRoute roles={["admin"]}>
+                <DashboardAdmin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/superadmin"
+            element={
+              <ProtectedRoute roles={["superadmin"]}>
+                <DashboardSuperAdmin />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
+
+export default App;
+>>>>>>> b03dd2b0c4201a5321cd90704e1d0ee4675f55b4
