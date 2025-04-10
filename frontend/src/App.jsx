@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import LoginPage from "./pages/authentification/LoginPage";
 import DashboardUser from "./pages/Dashboards/DashboardUser";
-import DashboardAdmin from "./pages/Dashboards/DashboardAdmin";
+import DashboardAdmin from "./pages/Dashboards/DashboardSuperAdmin";
 import DashboardSuperAdmin from "./pages/Dashboards/DashboardSuperAdmin";
 import ForgotPassword from "./pages/authentification/ForgotPassword";
 import ResetPassword from "./pages/authentification/ResetPassword";
