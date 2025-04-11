@@ -7,6 +7,7 @@ import DashboardAdmin from "./pages/Dashboards/DashboardSuperAdmin";
 import DashboardSuperAdmin from "./pages/Dashboards/DashboardSuperAdmin";
 import ForgotPassword from "./pages/authentification/ForgotPassword";
 import ResetPassword from "./pages/authentification/ResetPassword";
+import RegisterPage from "./pages/authentification/RegisterPage";
 
 const ProtectedRoute = ({ children, roles }) => {
   const { user } = useAuth(); //useContext(AuthContext);
@@ -22,6 +23,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LoginPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route
