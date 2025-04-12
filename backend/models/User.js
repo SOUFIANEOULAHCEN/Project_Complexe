@@ -35,3 +35,29 @@ export const findByResetToken = async (token) => {
 export const clearResetToken = async (id) => {
   await db.query('UPDATE personne SET resetToken = NULL WHERE id = ?', [id]);
 };
+
+export const updateUser = async (id, { nom, email, image }) => {
+  const updates = [];
+  const values = [];
+
+  if (nom) {
+    updates.push('nom = ?');
+    values.push(nom);
+  }
+  if (email) {
+    updates.push('email = ?');
+    values.push(email);
+  }
+  if (image) {
+    updates.push('image = ?');
+    values.push(image);
+  }
+
+  if (updates.length === 0) return;
+
+  values.push(id);
+  await db.query(
+    `UPDATE personne SET ${updates.join(', ')} WHERE id = ?`,
+    values
+  );
+};

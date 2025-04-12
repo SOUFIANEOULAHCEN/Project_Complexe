@@ -7,36 +7,59 @@ import axios from "axios";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // contient { id, typeUser, email }
-  const [accessToken, setAccessToken] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Configurer axios
+  axios.defaults.withCredentials = true;
+  axios.defaults.baseURL = 'http://localhost:3000/api';
+
+  // Vérifier l'authentification au chargement
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get('/users/profile');
+        setUser(response.data);
+      } catch (error) {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkAuth();
+  }, []);
 
   const login = async (email, password) => {
-    const res = await axios.post(
-      "http://localhost:3000/api/auth/login",
-      { email, password },
-      { withCredentials: true }
-    );
-
-    const token = res.data.accessToken;
-    setAccessToken(token);
-    // const decoded = jwt_decode(token);
-    const decoded = jwtDecode(token);
-    setUser(decoded); // { id, typeUser, email }
-    return decoded; // pour l’utiliser après
+    const response = await axios.post('/auth/login', { email, password });
+    setUser(response.data.user);
+    return response.data.user;
   };
 
   const logout = async () => {
-    await axios.post(
-      "http://localhost:3000/api/auth/logout",
-      {},
-      { withCredentials: true }
-    );
+    await axios.post('/auth/logout');
     setUser(null);
-    setAccessToken(null);
   };
 
+  const updateProfile = async (userData) => {
+    const response = await axios.put('/users/profile', userData);
+    setUser(response.data);
+    return response.data;
+  };
+
+  if (loading) {
+    return <div>Chargement...</div>; // Ou votre composant de chargement
+  }
+
   return (
-    <AuthContext.Provider value={{ user, accessToken, login, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      login, 
+      logout,
+      updateProfile,
+      isAuthenticated: !!user,
+      isAdmin: user?.typeUser === 'admin',
+      isSuperAdmin: user?.typeUser === 'superadmin'
+    }}>
       {children}
     </AuthContext.Provider>
   );

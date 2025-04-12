@@ -49,21 +49,32 @@ export const login = async (req, res) => {
   const accessToken = generateAccessToken(user);
   const refreshToken = generateRefreshToken(user);
 
-  res.cookie("refreshToken", refreshToken, {
+  // Configurer les cookies sécurisés
+  res.cookie('accessToken', accessToken, {
     httpOnly: true,
-    secure: false, //true en production
-    sameSite: "lax", //csrf protection 'strict' en production
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 15 * 60 * 1000 // 15 minutes
   });
 
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 jours
+  });
+
+  // Renvoyer les informations utilisateur sans données sensibles
+  const { password: _, ...userInfo } = user;
   res.json({
-    user: { id: user.id, email: user.email, typeUser: user.typeUser },
-    accessToken,
+    user: userInfo,
+    message: "Connexion réussie"
   });
 };
 
 export const logout = (req, res) => {
-  res.clearCookie("refreshToken");
+  res.clearCookie('accessToken');
+  res.clearCookie('refreshToken');
   res.json({ message: "Déconnexion réussie" });
 };
 
@@ -80,25 +91,6 @@ export const refreshToken = (req, res) => {
   }
 };
 
-// export const forgotPassword = async (req, res) => {
-//   const { email } = req.body;
-//   const user = await findUserByEmail(email);
-//   if (!user) return res.status(404).json({ message: "Email non trouvé" });
-
-//   const resetToken = crypto.randomBytes(32).toString("hex");
-//   await saveResetToken(email, resetToken);
-
-//   const resetURL = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
-
-//   await transporter.sendMail({
-//     to: email,
-//     subject: "Réinitialisation de mot de passe",
-//     html: `<p>Cliquez ici pour réinitialiser votre mot de passe : <a href="${resetURL}">${resetURL}</a></p>`,
-//   });
-
-//   res.json({ message: "Email de réinitialisation envoyé" });
-// };
-
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
   const user = await findUserByEmail(email);
@@ -109,11 +101,13 @@ export const forgotPassword = async (req, res) => {
 
   const resetURL = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
-  // Au lieu d'envoyer un email, retournez le lien de réinitialisation
-  res.json({
-    message: "Demande de réinitialisation traitée avec succès",
-    resetLink: resetURL,
+  await transporter.sendMail({
+    to: email,
+    subject: "Réinitialisation de mot de passe",
+    html: `<p>Cliquez ici pour réinitialiser votre mot de passe : <a href="${resetURL}">${resetURL}</a></p>`,
   });
+
+  res.json({ message: "Email de réinitialisation envoyé" });
 };
 
 export const resetPassword = async (req, res) => {
