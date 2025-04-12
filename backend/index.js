@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import authRoutes from "./Routes/authRoutes.js";
 import { connectDB } from "./config/db.js";
+import commentaireRoutes from "./Routes/commentaireRoutes.js";
 
 dotenv.config();
 
@@ -25,10 +26,11 @@ app.use(cookieParser());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/commentaires", commentaireRoutes);
 
 // Test route
 app.get("/", (req, res) => {
-  res.send("API Auth OK");
+  res.send("API Auth  et Commentaires OK");
 });
 
 // Start server
