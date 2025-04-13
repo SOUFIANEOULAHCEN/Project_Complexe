@@ -6,7 +6,7 @@ import authRoutes from "./Routes/authRoutes.js";
 import { connectDB } from "./config/db.js";
 import commentaireRoutes from "./Routes/commentaireRoutes.js";
 import newsletterRoutes from "./Routes/newsletterRoutes.js";
-
+import statisticsRoutes from "./Routes/statisticsRoutes.js"; 
 
 dotenv.config();
 
@@ -29,13 +29,12 @@ app.use(cookieParser());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/commentaires", commentaireRoutes);
-app.use('/api/newsletter', newsletterRoutes);
-
-
+app.use("/api/newsletter", newsletterRoutes);
+app.use("/api/statistiques", statisticsRoutes);
 
 // Test route
 app.get("/", (req, res) => {
-  res.send("API Auth  et Commentaires OK");
+  res.send("API Auth et Commentaires OK");
 });
 
 // Start server
