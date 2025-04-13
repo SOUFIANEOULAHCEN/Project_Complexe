@@ -30,20 +30,32 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const response = await axios.post('/auth/login', { email, password });
-    setUser(response.data.user);
-    return response.data.user;
+    try {
+      const response = await axios.post('/auth/login', { email, password });
+      setUser(response.data.user);
+      return response.data.user;
+    } catch (error) {
+      throw error;
+    }
   };
 
   const logout = async () => {
-    await axios.post('/auth/logout');
-    setUser(null);
+    try {
+      await axios.post('/auth/logout');
+      setUser(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const updateProfile = async (userData) => {
-    const response = await axios.put('/users/profile', userData);
-    setUser(response.data);
-    return response.data;
+    try {
+      const response = await axios.put('/users/profile', userData);
+      setUser(response.data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   };
 
   if (loading) {

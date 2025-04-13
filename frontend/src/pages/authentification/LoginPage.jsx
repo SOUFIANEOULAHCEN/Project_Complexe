@@ -26,9 +26,9 @@ const LoginPage = () => {
       setSuccess("Connexion réussie ! Redirection en cours...");
 
       setTimeout(() => {
-        if (typeUser === "admin") navigate("/dashboard/admin");
-        else if (typeUser === "superadmin") navigate("/dashboard/superadmin");
-        else navigate("/dashboard/user");
+        if (typeUser === "admin") navigate("/dashboard-admin");
+        else if (typeUser === "superadmin") navigate("/dashboard-superadmin");
+        else navigate("/dashboard-user");
       }, 1500); // petite pause pour laisser le temps à l'utilisateur de voir le message
     } catch (err) {
       setError(err?.response?.data?.message || "Échec de la connexion");

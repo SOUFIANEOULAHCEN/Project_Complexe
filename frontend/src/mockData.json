@@ -1,0 +1,142 @@
+{
+  "dashboard": {
+    "statistics": {
+      "totalUsers": 4,
+      "totalSpaces": 3,
+      "totalReservations": 5,
+      "totalComments": 4
+    },
+    "activityChart": [
+      { "day": "Lundi", "reservations": 2 },
+      { "day": "Mardi", "reservations": 1 },
+      { "day": "Mercredi", "reservations": 3 },
+      { "day": "Jeudi", "reservations": 2 },
+      { "day": "Vendredi", "reservations": 1 }
+    ]
+  },
+
+  "users": [
+    {
+      "id": 1,
+      "name": "Admin Principal",
+      "email": "admin@example.com",
+      "role": "admin",
+      "status": "active",
+      "joinedAt": "2023-01-15T10:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "Utilisateur Test",
+      "email": "user@example.com",
+      "role": "user",
+      "status": "active",
+      "joinedAt": "2023-02-20T14:30:00Z"
+    },
+    {
+      "id": 3,
+      "name": "Utilisateur Inactif",
+      "email": "inactive@example.com",
+      "role": "user",
+      "status": "inactive",
+      "joinedAt": "2023-03-10T09:15:00Z"
+    }
+  ],
+
+  "spaces": [
+    {
+      "id": 1,
+      "name": "Salle de Réunion A",
+      "capacity": 10,
+      "equipment": ["Projecteur", "Tableau blanc", "WiFi"],
+      "status": "available"
+    },
+    {
+      "id": 2,
+      "name": "Salle de Conférence B",
+      "capacity": 20,
+      "equipment": ["Écran géant", "Système audio", "WiFi"],
+      "status": "maintenance"
+    },
+    {
+      "id": 3,
+      "name": "Espace Coworking",
+      "capacity": 15,
+      "equipment": ["WiFi", "Imprimante", "Cafetière"],
+      "status": "available"
+    }
+  ],
+
+  "reservations": [
+    {
+      "id": 1,
+      "space": "Salle de Réunion A",
+      "user": "Admin Principal",
+      "start": "2024-03-25T09:00:00Z",
+      "end": "2024-03-25T11:00:00Z",
+      "status": "confirmed"
+    },
+    {
+      "id": 2,
+      "space": "Espace Coworking",
+      "user": "Utilisateur Test",
+      "start": "2024-03-26T14:00:00Z",
+      "end": "2024-03-26T17:00:00Z",
+      "status": "pending"
+    },
+    {
+      "id": 3,
+      "space": "Salle de Conférence B",
+      "user": "Admin Principal",
+      "start": "2024-03-27T10:00:00Z",
+      "end": "2024-03-27T12:00:00Z",
+      "status": "cancelled"
+    }
+  ],
+
+  "comments": [
+    {
+      "id": 1,
+      "user": "Utilisateur Test",
+      "content": "Très bonne salle, équipement de qualité",
+      "rating": 5,
+      "date": "2024-03-15T16:30:00Z"
+    },
+    {
+      "id": 2,
+      "user": "Admin Principal",
+      "content": "Problème avec le projecteur",
+      "rating": 2,
+      "date": "2024-03-18T11:45:00Z"
+    },
+    {
+      "id": 3,
+      "user": "Utilisateur Inactif",
+      "content": "Espace agréable et bien équipé",
+      "rating": 4,
+      "date": "2024-03-20T09:15:00Z"
+    }
+  ],
+
+  "system": {
+    "logs": [
+      {
+        "date": "2024-03-20T10:30:00Z",
+        "type": "info",
+        "message": "Système démarré avec succès"
+      },
+      {
+        "date": "2024-03-20T11:15:00Z",
+        "type": "warning",
+        "message": "Tentative de connexion échouée"
+      },
+      {
+        "date": "2024-03-21T09:00:00Z",
+        "type": "error",
+        "message": "Erreur de connexion à la base de données"
+      }
+    ],
+    "settings": {
+      "maintenanceMode": false
+    }
+  }
+} 
