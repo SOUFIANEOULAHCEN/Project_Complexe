@@ -10,11 +10,11 @@ import ForgotPassword from "./pages/authentification/ForgotPassword";
 import ResetPassword from "./pages/authentification/ResetPassword";
 import RegisterPage from "./pages/authentification/RegisterPage";
 import { Toaster } from './pages/miniComponents/Toaster';
-import UsersSection from './pages/miniComponents/UsersSection';
-import SpacesSection from './pages/miniComponents/SpacesSection';
-import ReservationsSection from './pages/miniComponents/ReservationsSection';
+import UserSection from './pages/miniComponents/UserSection';
+import SpaceSection from './pages/miniComponents/SpaceSection';
+import ReservationSection from './pages/miniComponents/ReservationSection';
 import CommentsSection from './pages/miniComponents/CommentsSection';
-import DashboardHomeAdmin from './pages/miniComponents/DashboardHomeAdmin';
+import DashboardContent from './pages/miniComponents/DashboardContent';
 import ReportsSection from './pages/miniComponents/ReportsSection';
 import mockData from './mockData.json';
 
@@ -87,7 +87,7 @@ function App() {
               <Route 
                 index 
                 element={
-                  <DashboardHomeAdmin 
+                  <DashboardContent 
                     dashboard={mockData.dashboard}
                     users={mockData.users}
                     spaces={mockData.spaces}
@@ -96,12 +96,12 @@ function App() {
                   />
                 } 
               />
-              <Route path="users" element={<UsersSection users={mockData.users} />} />
-              <Route path="spaces" element={<SpacesSection spaces={mockData.spaces} />} />
+              <Route path="users" element={<UserSection users={mockData.users} />} />
+              <Route path="spaces" element={<SpaceSection spaces={mockData.spaces} />} />
               <Route 
                 path="reservations" 
                 element={
-                  <ReservationsSection 
+                  <ReservationSection 
                     reservations={mockData.reservations}
                     users={mockData.users}
                     spaces={mockData.spaces}
