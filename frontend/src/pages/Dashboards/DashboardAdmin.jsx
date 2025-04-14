@@ -34,13 +34,13 @@ const DashboardAdmin = () => {
 
     const navItems = [
         { name: 'Dashboard', path: '/dashboard-admin', icon: ChartBarIcon },
-        { name: 'Users', path: '/dashboard-admin/users', icon: UserGroupIcon },
-        { name: 'Calendar', path: '/dashboard-admin/calendar', icon: CalendarIcon },
-        { name: 'Spaces', path: '/dashboard-admin/spaces', icon: CheckCircleIcon },
+        { name: 'Utilisateur', path: '/dashboard-admin/users', icon: UserGroupIcon },
+        { name: 'Calendrier', path: '/dashboard-admin/calendar', icon: CalendarIcon },
+        { name: 'Espace', path: '/dashboard-admin/spaces', icon: CheckCircleIcon },
         { name: 'Reservations', path: '/dashboard-admin/reservations', icon: CheckCircleIcon },
-        { name: 'Comments', path: '/dashboard-admin/comments', icon: ChatAltIcon },
-        { name: 'System', path: '/dashboard-admin/system', icon: CogIcon },
-        { name: 'Reports', path: '/dashboard-admin/reports', icon: DocumentTextIcon },
+        { name: 'Commentaire', path: '/dashboard-admin/comments', icon: ChatAltIcon },
+        { name: 'Systeme', path: '/dashboard-admin/system', icon: CogIcon },
+        { name: 'Raport', path: '/dashboard-admin/reports', icon: DocumentTextIcon },
     ];
 
     const handleLogout = async () => {

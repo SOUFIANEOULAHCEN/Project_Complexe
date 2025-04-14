@@ -61,7 +61,8 @@ export const login = async (req, res) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 jours
+    // maxAge: 7 * 24 * 60 * 60 * 1000 // 7 jours
+    maxAge: 15 * 60 * 1000 
   });
 
   // Renvoyer les informations utilisateur sans données sensibles
@@ -77,7 +78,42 @@ export const logout = (req, res) => {
   res.clearCookie('refreshToken');
   res.json({ message: "Déconnexion réussie" });
 };
+// export const login = async (req, res) => {
+//   const { email, password } = req.body;
 
+//   try {
+//     const user = await User.findOne({ email });
+//     if (!user || !(await user.matchPassword(password))) {
+//       return res.status(401).json({ message: "Invalid email or password" });
+//     }
+
+//     const token = jwt.sign(
+//       { userId: user._id, typeUser: user.typeUser },
+//       process.env.JWT_SECRET,
+//       {
+//         expiresIn: "1h",
+//       }
+//     );
+
+//     res.cookie("token", token, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "development",
+//       // maxAge: 3600000, // 1 hour
+//       maxAge: 1000 * 60, // 1 minute
+//     });
+
+//     res.json({
+//       user: { id: user._id, email: user.email, typeUser: user.typeUser },
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
+
+// export const logout = (req, res) => {
+//   res.clearCookie("token");
+//   res.json({ message: "Logged out" });
+// };
 export const refreshToken = (req, res) => {
   const token = req.cookies.refreshToken;
   if (!token) return res.sendStatus(401);

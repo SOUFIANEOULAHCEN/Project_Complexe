@@ -61,3 +61,12 @@ export const updateUser = async (id, { nom, email, image }) => {
     values
   );
 };
+
+export const deleteUser = async (id) => {
+  await db.query('DELETE FROM personne WHERE id = ?', [id]);
+};
+
+export const getAllUsers = async () => {
+  const [rows] = await db.query('SELECT * FROM personne');
+  return rows;
+};
