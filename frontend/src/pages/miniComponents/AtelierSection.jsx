@@ -38,10 +38,19 @@ const AtelierSection = () => {
             const response = await axios.get('http://localhost:3000/api/ateliers/ateliers', {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setAteliers(response.data);
+            
+            // Ensure the response data is an array
+            if (Array.isArray(response.data)) {
+                setAteliers(response.data);
+            } else {
+                console.error('Invalid data format received:', response.data);
+                showNotification('Erreur dans le format des données reçues', 'error');
+                setAteliers([]); // Set to empty array to prevent filter error
+            }
         } catch (error) {
             console.error('Erreur lors de la récupération des ateliers:', error);
             showNotification('Erreur lors de la récupération des ateliers', 'error');
+            setAteliers([]); // Set to empty array to prevent filter error
         }
     };
 
@@ -116,10 +125,11 @@ const AtelierSection = () => {
         }
     };
 
-    const filteredAteliers = ateliers.filter(atelier =>
-        atelier.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        atelier.animateur.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredAteliers = Array.isArray(ateliers) ? 
+        ateliers.filter(atelier =>
+            atelier.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            atelier.animateur.toLowerCase().includes(searchTerm.toLowerCase())
+        ) : [];
 
     return (
         <Card>
@@ -151,25 +161,30 @@ const AtelierSection = () => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredAteliers.map((atelier) => (
-                            <TableRow key={atelier.idAtelier}>
-                                <TableCell>{atelier.nom}</TableCell>
-                                <TableCell>{atelier.description}</TableCell>
-                                <TableCell>{atelier.animateur}</TableCell>
-                                <TableCell>{format(new Date(atelier.date), 'dd/MM/yyyy')}</TableCell>
-                                <TableCell>{atelier.heure}</TableCell>
-                                <TableCell>
-                                    <div className="flex gap-2">
-                                        <Button variant="outline" size="sm" onClick={() => handleEditAtelier(atelier)}>
-                                            <FiEdit2 className="h-4 w-4" />
-                                        </Button>
-                                        <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(atelier)}>
-                                            <FiTrash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                        {filteredAteliers.map((atelier) => {
+                            const date = new Date(atelier.date);
+                            const formattedDate = isNaN(date.getTime()) ? 'Date invalide' : format(date, 'dd/MM/yyyy');
+                            
+                            return (
+                                <TableRow key={atelier.idAtelier}>
+                                    <TableCell>{atelier.nom}</TableCell>
+                                    <TableCell>{atelier.description}</TableCell>
+                                    <TableCell>{atelier.animateur}</TableCell>
+                                    <TableCell>{formattedDate}</TableCell>
+                                    <TableCell>{atelier.heure}</TableCell>
+                                    <TableCell>
+                                        <div className="flex gap-2">
+                                            <Button variant="outline" size="sm" onClick={() => handleEditAtelier(atelier)}>
+                                                <FiEdit2 className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(atelier)}>
+                                                <FiTrash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
                     </TableBody>
                 </Table>
 

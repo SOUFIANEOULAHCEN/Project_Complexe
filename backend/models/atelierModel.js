@@ -1,26 +1,31 @@
 import db from '../config/db.js';
 
-export const createAtelier = (nom, dateDebut, dateFin, organisateur, idCalendar, callback) => {
+export const createAtelier = async (nom, dateDebut, dateFin, organisateur, idCalendar) => {
   const sql = 'INSERT INTO atelier (nom, dateDebut, dateFin, organisateur, idCalendar) VALUES (?, ?, ?, ?, ?)';
-  db.query(sql, [nom, dateDebut, dateFin, organisateur, idCalendar], callback);
+  const [results] = await db.execute(sql, [nom, dateDebut, dateFin, organisateur, idCalendar]);
+  return results;
 };
 
-export const getAllAteliers = (callback) => {
+export const getAllAteliers = async () => {
   const sql = 'SELECT * FROM atelier';
-  db.query(sql, callback);
+  const [results] = await db.execute(sql);
+  return results;
 };
 
-export const getAtelierById = (id, callback) => {
+export const getAtelierById = async (id) => {
   const sql = 'SELECT * FROM atelier WHERE idAtelier = ?';
-  db.query(sql, [id], callback);
+  const [results] = await db.execute(sql, [id]);
+  return results;
 };
 
-export const updateAtelier = (id, nom, dateDebut, dateFin, organisateur, idCalendar, callback) => {
+export const updateAtelier = async (id, nom, dateDebut, dateFin, organisateur, idCalendar) => {
   const sql = 'UPDATE atelier SET nom = ?, dateDebut = ?, dateFin = ?, organisateur = ?, idCalendar = ? WHERE idAtelier = ?';
-  db.query(sql, [nom, dateDebut, dateFin, organisateur, idCalendar, id], callback);
+  const [results] = await db.execute(sql, [nom, dateDebut, dateFin, organisateur, idCalendar, id]);
+  return results;
 };
 
-export const deleteAtelier = (id, callback) => {
+export const deleteAtelier = async (id) => {
   const sql = 'DELETE FROM atelier WHERE idAtelier = ?';
-  db.query(sql, [id], callback);
+  const [results] = await db.execute(sql, [id]);
+  return results;
 };
