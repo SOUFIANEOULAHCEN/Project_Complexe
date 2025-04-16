@@ -3,9 +3,18 @@ import * as Atelier from '../models/atelierModel.js';
 export const createAtelier = async (req, res) => {
   try {
     const { nom, dateDebut, dateFin, organisateur, idCalendar } = req.body;
+    
+    // Validate input data
+    if (!nom || !dateDebut || !dateFin || !organisateur) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    console.log('Received data:', req.body); // Log incoming data
+
     const results = await Atelier.createAtelier(nom, dateDebut, dateFin, organisateur, idCalendar);
     res.status(201).json({ message: "Atelier créé avec succès", data: results });
   } catch (err) {
+    console.error('Error creating atelier:', err);
     res.status(500).json({ message: "Erreur lors de la création de l'atelier", error: err.message });
   }
 };
@@ -47,10 +56,19 @@ export const updateAtelier = async (req, res) => {
 
 export const deleteAtelier = async (req, res) => {
   try {
-    const id = req.params.id;
-    await Atelier.deleteAtelier(id);
-    res.status(200).json({ message: "Atelier supprimé avec succès" });
+    const { id } = req.params;
+
+    // Log the ID of the atelier being deleted
+    console.log('Deleting atelier with ID:', id);
+
+    const results = await Atelier.deleteAtelier(id);
+    if (results.affectedRows > 0) {
+      res.status(200).json({ message: "Atelier supprimé avec succès" });
+    } else {
+      res.status(404).json({ message: "Atelier non trouvé" });
+    }
   } catch (err) {
+    console.error('Error deleting atelier:', err);
     res.status(500).json({ message: "Erreur lors de la suppression de l'atelier", error: err.message });
   }
 };

@@ -10,7 +10,6 @@ import { verifyToken, checkRole } from '../middlewares/auth.js';
 
 const router = express.Router();
 
-// CRUD Atelier
 router.post('/ateliers', verifyToken, checkRole(['admin', 'superadmin']), createAtelier);
 router.get('/ateliers', verifyToken, getAllAteliers);
 router.get('/ateliers/:id', verifyToken, getAtelierById);

@@ -65,7 +65,16 @@ const AtelierSection = () => {
                 return;
             }
 
-            await axios.post('http://localhost:3000/api/ateliers/ateliers', newAtelier, {
+            // Log the data being sent
+            console.log('Sending data:', newAtelier);
+
+            await axios.post('http://localhost:3000/api/ateliers/ateliers', {
+                nom: newAtelier.nom,
+                dateDebut: newAtelier.date,
+                dateFin: newAtelier.date, // Assuming dateDebut and dateFin are the same
+                organisateur: newAtelier.animateur,
+                idCalendar: newAtelier.idCalendar
+            }, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -83,7 +92,11 @@ const AtelierSection = () => {
     };
 
     const handleEditAtelier = (atelier) => {
-        setSelectedAtelier(atelier);
+        setSelectedAtelier({
+            ...atelier,
+            date: atelier.dateDebut, // Ensure you're using the correct date field
+            heure: atelier.heure || '', // Default to empty string if undefined
+        });
         setIsEditModalOpen(true);
     };
 
@@ -112,6 +125,9 @@ const AtelierSection = () => {
 
     const handleDeleteConfirm = async () => {
         try {
+            // Log the ID of the atelier being deleted
+            console.log('Deleting atelier with ID:', selectedAtelier.idAtelier);
+
             await axios.delete(`http://localhost:3000/api/ateliers/ateliers/${selectedAtelier.idAtelier}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -127,8 +143,8 @@ const AtelierSection = () => {
 
     const filteredAteliers = Array.isArray(ateliers) ? 
         ateliers.filter(atelier =>
-            atelier.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            atelier.animateur.toLowerCase().includes(searchTerm.toLowerCase())
+            (atelier.nom && atelier.nom.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (atelier.animateur && atelier.animateur.toLowerCase().includes(searchTerm.toLowerCase()))
         ) : [];
 
     return (
@@ -162,7 +178,7 @@ const AtelierSection = () => {
                     </TableHeader>
                     <TableBody>
                         {filteredAteliers.map((atelier) => {
-                            const date = new Date(atelier.date);
+                            const date = new Date(atelier.dateDebut); // Ensure you're using the correct date field
                             const formattedDate = isNaN(date.getTime()) ? 'Date invalide' : format(date, 'dd/MM/yyyy');
                             
                             return (
@@ -218,16 +234,17 @@ const AtelierSection = () => {
 
                 {/* Modal d'édition */}
                 <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-                    <DialogContent>
+                    <DialogContent aria-describedby="edit-dialog-description">
                         <DialogHeader>
                             <DialogTitle>Modifier l'atelier</DialogTitle>
                         </DialogHeader>
+                        <p id="edit-dialog-description">Utilisez ce formulaire pour modifier les détails de l'atelier.</p>
                         {selectedAtelier && (
                             <div className="space-y-4">
                                 <Input value={selectedAtelier.nom} onChange={(e) => setSelectedAtelier({ ...selectedAtelier, nom: e.target.value })} />
                                 <Input value={selectedAtelier.description} onChange={(e) => setSelectedAtelier({ ...selectedAtelier, description: e.target.value })} />
                                 <Input value={selectedAtelier.animateur} onChange={(e) => setSelectedAtelier({ ...selectedAtelier, animateur: e.target.value })} />
-                                <Input type="date" value={selectedAtelier.date.split('T')[0]} onChange={(e) => setSelectedAtelier({ ...selectedAtelier, date: e.target.value })} />
+                                <Input type="date" value={selectedAtelier.date ? selectedAtelier.date.split('T')[0] : ''} onChange={(e) => setSelectedAtelier({ ...selectedAtelier, date: e.target.value })} />
                                 <Input type="time" value={selectedAtelier.heure} onChange={(e) => setSelectedAtelier({ ...selectedAtelier, heure: e.target.value })} />
                                 <Input value={selectedAtelier.idCalendar || ''} onChange={(e) => setSelectedAtelier({ ...selectedAtelier, idCalendar: e.target.value })} />
                             </div>
