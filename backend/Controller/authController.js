@@ -52,14 +52,14 @@ export const login = async (req, res) => {
   // Configurer les cookies sécurisés
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'developement',
     sameSite: 'lax',
     maxAge: 15 * 60 * 1000 // 15 minutes
   });
 
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'developement',
     sameSite: 'lax',
     // maxAge: 7 * 24 * 60 * 60 * 1000 // 7 jours
     maxAge: 15 * 60 * 1000 

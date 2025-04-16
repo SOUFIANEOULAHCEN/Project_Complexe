@@ -17,6 +17,7 @@ import CommentsSection from './pages/miniComponents/CommentsSection';
 import DashboardContent from './pages/miniComponents/DashboardContent';
 import ReportsSection from './pages/miniComponents/ReportsSection';
 import mockData from './mockData.json';
+import AtelierSection from './pages/miniComponents/AtelierSection';
 
 const ProtectedRoute = ({ children, roles }) => {
   const { user, loading } = useAuth();
@@ -96,6 +97,7 @@ function App() {
                   />
                 } 
               />
+              <Route path="atelier" element={<AtelierSection />} />
               <Route path="users" element={<UserSection users={mockData.users} />} />
               <Route path="spaces" element={<SpaceSection spaces={mockData.spaces} />} />
               <Route 
