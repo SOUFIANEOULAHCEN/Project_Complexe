@@ -6,6 +6,7 @@ import authRoutes from "./Routes/authRoutes.js";
 import userRoutes from "./Routes/userRoutes.js";
 import espaceRoutes from "./Routes/espaceRoutes.js";
 import atelierRoutes from "./Routes/atelierRoutes.js";
+import reservationRoutes from './Routes/reservationRoutes.js';
 import { connectDB } from "./config/db.js";
 
 dotenv.config();
@@ -31,6 +32,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/espaces", espaceRoutes);
 app.use("/api/ateliers", atelierRoutes);
+app.use('/api/reservations', reservationRoutes);
 
 // Test route
 app.get("/", (req, res) => {

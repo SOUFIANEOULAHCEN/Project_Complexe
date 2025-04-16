@@ -1,20 +1,33 @@
+// routes/reservationRoutes.js
 import express from 'express';
 import { 
-    addReservation, 
-    getAllReservations, 
-    getReservationsByUser, 
-    getReservationsByEvent, 
-    deleteReservation 
+  getAllReservations,
+  getReservationById,
+  getReservationsByUserId,
+  createReservation,
+  deleteReservation
 } from '../Controller/reservationController.js';
-import { verifyToken } from '../middlewares/authMiddleware.js';
+// import { verifyToken } from '../middlewares/authMiddleware.js';
+import { verifyToken, checkRole } from '../middlewares/auth.js';
 
 const router = express.Router();
 
-// API Routes
-router.post('/reservations', verifyToken, addReservation); // Réserver un événement
-router.get('/reservations', getAllReservations); // Liste des réservations
-router.get('/reservations/user/:id', verifyToken, getReservationsByUser); // Liste des réservations d'un utilisateur
-router.get('/reservations/event/:id', verifyToken, getReservationsByEvent); // Liste des réservations pour un événement
-router.delete('/reservations/:id', verifyToken, deleteReservation); // Annuler une réservation
+// Apply authentication middleware to all routes
+router.use(verifyToken);
+
+// Get all reservations
+router.get('/', getAllReservations);
+
+// Get reservation by ID
+router.get('/:id', getReservationById);
+
+// Get reservations by user ID
+router.get('/user/:userId', getReservationsByUserId);
+
+// Create a new reservation
+router.post('/', createReservation);
+
+// Delete a reservation
+router.delete('/:id', deleteReservation);
 
 export default router;

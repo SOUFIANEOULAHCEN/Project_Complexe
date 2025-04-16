@@ -1,25 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
-import axios from 'axios';
-import { format } from 'date-fns';
+import { showToast } from './Toaster';
 
 const SpaceSection = () => {
+    // State variables
     const [espaces, setEspaces] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    
+    // Modal states
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedEspace, setSelectedEspace] = useState(null);
-    const [searchTerm, setSearchTerm] = useState('');
-    const { token } = useAuth();
-    const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
-
+    
+    // New espace form data
     const [newEspace, setNewEspace] = useState({
         nom: '',
         dateDebut: '',
@@ -27,108 +29,125 @@ const SpaceSection = () => {
         organisateur: '',
         idCalendar: ''
     });
+    
+    // Get auth token
+    const { token } = useAuth();
+    
+    // API base URL
+    const API_URL = 'http://localhost:3000/api';
 
-    const showNotification = (message, type = 'success') => {
-        setNotification({ show: true, message, type });
-        setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
-    };
+    // Fetch espaces on component mount
+    useEffect(() => {
+        fetchEspaces();
+    }, []);
 
+    // Function to fetch espaces from API
     const fetchEspaces = async () => {
+        setLoading(true);
         try {
-            const response = await axios.get('http://localhost:3000/api/espaces/espaces', {
+            const response = await axios.get(`${API_URL}/espaces/espaces`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setEspaces(response.data);
+            showToast('Espaces chargés avec succès', 'success');
         } catch (error) {
-            console.error('Error fetching espaces:', error);
-            showNotification('Erreur lors de la récupération des espaces', 'error');
+            console.error('Erreur lors du chargement des espaces:', error);
+            showToast('Erreur lors du chargement des espaces', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchEspaces();
-    }, [token]);
-
+    // Function to add a new espace
     const handleAddEspace = async () => {
         try {
+            // Validate required fields
             if (!newEspace.nom || !newEspace.dateDebut || !newEspace.dateFin || !newEspace.organisateur) {
-                showNotification('Veuillez remplir tous les champs requis', 'error');
+                showToast('Veuillez remplir tous les champs requis', 'error');
                 return;
             }
 
-            await axios.post('http://localhost:3000/api/espaces/espaces', newEspace, {
-                headers: { 
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            await fetchEspaces();
-            setIsAddModalOpen(false);
-            setNewEspace({ nom: '', dateDebut: '', dateFin: '', organisateur: '', idCalendar: '' });
-            showNotification('Espace ajouté avec succès');
-        } catch (err) {
-            console.error('Error adding espace:', err);
-            showNotification('Erreur lors de l\'ajout de l\'espace', 'error');
-        }
-    };
-
-    const handleEditEspace = (espace) => {
-        setSelectedEspace(espace);
-        setIsEditModalOpen(true);
-    };
-
-    const handleSaveEspace = async () => {
-        try {
-            await axios.put(`http://localhost:3000/api/espaces/espaces/${selectedEspace.idEspace}`, selectedEspace, {
-                headers: { 
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            await fetchEspaces();
-            setIsEditModalOpen(false);
-            showNotification('Espace mis à jour avec succès');
-        } catch (err) {
-            console.error('Error updating espace:', err);
-            showNotification('Erreur lors de la mise à jour de l\'espace', 'error');
-        }
-    };
-
-    const handleDeleteClick = (espace) => {
-        setSelectedEspace(espace);
-        setIsDeleteModalOpen(true);
-    };
-
-    const handleDeleteConfirm = async () => {
-        try {
-            await axios.delete(`http://localhost:3000/api/espaces/espaces/${selectedEspace.idEspace}`, {
+            // Send API request
+            await axios.post(`${API_URL}/espaces/espaces`, newEspace, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-
+            
+            // Refresh espace list and reset form
             await fetchEspaces();
-            setIsDeleteModalOpen(false);
-            showNotification('Espace supprimé avec succès');
-        } catch (err) {
-            console.error('Error deleting espace:', err);
-            showNotification('Erreur lors de la suppression de l\'espace', 'error');
+            setIsAddModalOpen(false);
+            setNewEspace({
+                nom: '',
+                dateDebut: '',
+                dateFin: '',
+                organisateur: '',
+                idCalendar: ''
+            });
+            showToast('Espace ajouté avec succès', 'success');
+        } catch (error) {
+            console.error('Erreur lors de l\'ajout de l\'espace:', error);
+            showToast('Erreur lors de l\'ajout de l\'espace', 'error');
         }
     };
 
-    const filteredEspaces = espaces.filter(espace =>
-        espace.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        espace.organisateur.toLowerCase().includes(searchTerm.toLowerCase())
+    // Function to update an espace
+    const handleUpdateEspace = async () => {
+        try {
+            // Send API request
+            await axios.put(`${API_URL}/espaces/espaces/${selectedEspace.idEspace}`, selectedEspace, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            // Refresh espace list
+            await fetchEspaces();
+            setIsEditModalOpen(false);
+            showToast('Espace mis à jour avec succès', 'success');
+        } catch (error) {
+            console.error('Erreur lors de la mise à jour de l\'espace:', error);
+            showToast('Erreur lors de la mise à jour de l\'espace', 'error');
+        }
+    };
+
+    // Function to delete an espace
+    const handleDeleteEspace = async () => {
+        try {
+            // Send API request
+            await axios.delete(`${API_URL}/espaces/espaces/${selectedEspace.idEspace}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            // Refresh espace list
+            await fetchEspaces();
+            setIsDeleteModalOpen(false);
+            showToast('Espace supprimé avec succès', 'success');
+        } catch (error) {
+            console.error('Erreur lors de la suppression de l\'espace:', error);
+            showToast('Erreur lors de la suppression de l\'espace', 'error');
+        }
+    };
+
+    // Format date for display
+    const formatDate = (dateString) => {
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString();
+        } catch (error) {
+            return 'Date invalide';
+        }
+    };
+
+    // Filter espaces based on search term
+    const filteredEspaces = espaces.filter(espace => 
+        espace.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        espace.organisateur?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Espaces</CardTitle>
+                <CardTitle>Gestion des Espaces</CardTitle>
                 <div className="flex gap-2">
                     <Input 
                         placeholder="Rechercher..." 
-                        className="w-[200px]"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -139,48 +158,63 @@ const SpaceSection = () => {
                 </div>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Nom</TableHead>
-                            <TableHead>Date Début</TableHead>
-                            <TableHead>Date Fin</TableHead>
-                            <TableHead>Organisateur</TableHead>
-                            <TableHead>Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredEspaces.map((espace) => (
-                            <TableRow key={espace.idEspace}>
-                                <TableCell>{espace.nom}</TableCell>
-                                <TableCell>{format(new Date(espace.dateDebut), 'dd/MM/yyyy')}</TableCell>
-                                <TableCell>{format(new Date(espace.dateFin), 'dd/MM/yyyy')}</TableCell>
-                                <TableCell>{espace.organisateur}</TableCell>
-                                <TableCell>
-                                    <div className="flex gap-2">
-                                        <Button variant="outline" size="sm" onClick={() => handleEditEspace(espace)}>
-                                            <FiEdit2 className="h-4 w-4" />
-                                        </Button>
-                                        <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(espace)}>
-                                            <FiTrash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </TableCell>
+                {loading ? (
+                    <div className="text-center py-4">Chargement...</div>
+                ) : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Nom</TableHead>
+                                <TableHead>Date Début</TableHead>
+                                <TableHead>Date Fin</TableHead>
+                                <TableHead>Organisateur</TableHead>
+                                <TableHead>Actions</TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-
-                {/* Notification */}
-                {notification.show && (
-                    <div className={`fixed bottom-4 right-4 p-4 rounded-lg ${
-                        notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-                    } text-white`}>
-                        {notification.message}
-                    </div>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredEspaces.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center">Aucun espace trouvé</TableCell>
+                                </TableRow>
+                            ) : (
+                                filteredEspaces.map((espace) => (
+                                    <TableRow key={espace.idEspace}>
+                                        <TableCell>{espace.nom}</TableCell>
+                                        <TableCell>{formatDate(espace.dateDebut)}</TableCell>
+                                        <TableCell>{formatDate(espace.dateFin)}</TableCell>
+                                        <TableCell>{espace.organisateur}</TableCell>
+                                        <TableCell>
+                                            <div className="flex gap-2">
+                                                <Button 
+                                                    variant="outline" 
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setSelectedEspace(espace);
+                                                        setIsEditModalOpen(true);
+                                                    }}
+                                                >
+                                                    <FiEdit2 className="h-4 w-4" />
+                                                </Button>
+                                                <Button 
+                                                    variant="destructive" 
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setSelectedEspace(espace);
+                                                        setIsDeleteModalOpen(true);
+                                                    }}
+                                                >
+                                                    <FiTrash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
                 )}
 
-                {/* Modal d'ajout */}
+                {/* Add Espace Modal */}
                 <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
                     <DialogContent>
                         <DialogHeader>
@@ -229,10 +263,7 @@ const SpaceSection = () => {
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button variant="outline" onClick={() => {
-                                setIsAddModalOpen(false);
-                                setNewEspace({ nom: '', dateDebut: '', dateFin: '', organisateur: '', idCalendar: '' });
-                            }}>
+                            <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
                                 Annuler
                             </Button>
                             <Button onClick={handleAddEspace}>
@@ -242,7 +273,7 @@ const SpaceSection = () => {
                     </DialogContent>
                 </Dialog>
 
-                {/* Modal d'édition */}
+                {/* Edit Espace Modal */}
                 <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
                     <DialogContent>
                         <DialogHeader>
@@ -261,7 +292,7 @@ const SpaceSection = () => {
                                     <label className="text-sm font-medium">Date de début</label>
                                     <Input
                                         type="date"
-                                        value={selectedEspace.dateDebut.split('T')[0]}
+                                        value={selectedEspace.dateDebut?.split('T')[0]}
                                         onChange={(e) => setSelectedEspace({ ...selectedEspace, dateDebut: e.target.value })}
                                     />
                                 </div>
@@ -269,7 +300,7 @@ const SpaceSection = () => {
                                     <label className="text-sm font-medium">Date de fin</label>
                                     <Input
                                         type="date"
-                                        value={selectedEspace.dateFin.split('T')[0]}
+                                        value={selectedEspace.dateFin?.split('T')[0]}
                                         onChange={(e) => setSelectedEspace({ ...selectedEspace, dateFin: e.target.value })}
                                     />
                                 </div>
@@ -293,14 +324,14 @@ const SpaceSection = () => {
                             <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
                                 Annuler
                             </Button>
-                            <Button onClick={handleSaveEspace}>
+                            <Button onClick={handleUpdateEspace}>
                                 Enregistrer
                             </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
 
-                {/* Modal de suppression */}
+                {/* Delete Espace Modal */}
                 <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
                     <DialogContent>
                         <DialogHeader>
@@ -311,7 +342,7 @@ const SpaceSection = () => {
                             <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
                                 Annuler
                             </Button>
-                            <Button variant="destructive" onClick={handleDeleteConfirm}>
+                            <Button variant="destructive" onClick={handleDeleteEspace}>
                                 Supprimer
                             </Button>
                         </DialogFooter>

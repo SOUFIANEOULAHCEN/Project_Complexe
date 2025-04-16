@@ -1,25 +1,28 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
-import axios from 'axios';
+import { showToast } from './Toaster';
 
 const UserSection = () => {
+    // State variables
     const [users, setUsers] = useState([]);
-    const [selectedUser, setSelectedUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    
+    // Modal states
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState('all');
-    const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
-    const { token } = useAuth();
+    const [selectedUser, setSelectedUser] = useState(null);
+    
+    // New user form data
     const [newUser, setNewUser] = useState({
         nom: '',
         email: '',
@@ -27,167 +30,119 @@ const UserSection = () => {
         typeUser: 'user',
         status: 'active'
     });
+    
+    // Get auth token
+    const { token } = useAuth();
+    
+    // API base URL
+    const API_URL = 'http://localhost:3000/api';
 
+    // Fetch users on component mount
     useEffect(() => {
         fetchUsers();
     }, []);
 
-    const showNotification = (message, type = 'success') => {
-        setNotification({ show: true, message, type });
-        setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
-    };
-
+    // Function to fetch users from API
     const fetchUsers = async () => {
+        setLoading(true);
         try {
-            const response = await axios.get('http://localhost:3000/api/users/users', {
-                headers: { 
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+            const response = await axios.get(`${API_URL}/users/users`, {
+                headers: { Authorization: `Bearer ${token}` }
             });
-            // Filtrer pour ne montrer que les utilisateurs de type 'user'
+            
+            // Filter to show only regular users
             const regularUsers = response.data.filter(user => user.typeUser === 'user');
             setUsers(regularUsers);
+            showToast('Utilisateurs chargés avec succès', 'success');
         } catch (error) {
-            console.error('Error fetching users:', error.response || error);
-            if (error.response) {
-                showNotification(`Erreur: ${error.response.data.message || 'Erreur serveur'}`, 'error');
-            } else if (error.request) {
-                showNotification('Erreur: Pas de réponse du serveur', 'error');
-            } else {
-                showNotification('Erreur: Impossible de faire la requête', 'error');
-            }
+            console.error('Erreur lors du chargement des utilisateurs:', error);
+            showToast('Erreur lors du chargement des utilisateurs', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
+    // Function to add a new user
     const handleAddUser = async () => {
         try {
-            // Vérification des champs requis
+            // Validate required fields
             if (!newUser.nom || !newUser.email || !newUser.password) {
-                showNotification('Veuillez remplir tous les champs requis', 'error');
+                showToast('Veuillez remplir tous les champs requis', 'error');
                 return;
             }
 
-            // Log des données envoyées
-            console.log('Tentative d\'ajout d\'utilisateur avec les données:', {
-                ...newUser,
-                password: '***' // On masque le mot de passe dans les logs
+            // Send API request
+            await axios.post(`${API_URL}/users/register`, newUser, {
+                headers: { Authorization: `Bearer ${token}` }
             });
-
-            const response = await axios.post('http://localhost:3000/api/users/register', 
-                {
-                    nom: newUser.nom,
-                    email: newUser.email,
-                    password: newUser.password,
-                    typeUser: 'user',
-                    status: newUser.status || 'active'
-                }, 
-                {
-                    headers: { 
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
-
-            console.log('Réponse du serveur:', response.data);
+            
+            // Refresh user list and reset form
             await fetchUsers();
             setIsAddModalOpen(false);
-            setNewUser({ nom: '', email: '', password: '', typeUser: 'user', status: 'active' });
-            showNotification('Utilisateur ajouté avec succès');
-        } catch (err) {
-            console.error('Erreur détaillée:', {
-                message: err.message,
-                response: err.response?.data,
-                status: err.response?.status,
-                statusText: err.response?.statusText
+            setNewUser({
+                nom: '',
+                email: '',
+                password: '',
+                typeUser: 'user',
+                status: 'active'
             });
-
-            if (err.response) {
-                // Erreur avec réponse du serveur
-                const errorMessage = err.response.data?.message || 'Erreur lors de l\'ajout';
-                showNotification(`Erreur ${err.response.status}: ${errorMessage}`, 'error');
-            } else if (err.request) {
-                // Erreur sans réponse du serveur
-                showNotification('Erreur: Le serveur ne répond pas. Vérifiez que le backend est en cours d\'exécution.', 'error');
-            } else {
-                // Erreur lors de la création de la requête
-                showNotification(`Erreur de requête: ${err.message}`, 'error');
-            }
+            showToast('Utilisateur ajouté avec succès', 'success');
+        } catch (error) {
+            console.error('Erreur lors de l\'ajout de l\'utilisateur:', error);
+            showToast(error.response?.data?.message || 'Erreur lors de l\'ajout de l\'utilisateur', 'error');
         }
     };
 
-    const handleEditUser = (user) => {
-        setSelectedUser({
-            ...user,
-            status: user.status || 'inactive'
-        });
-        setIsEditModalOpen(true);
-    };
-
-    const handleDeleteUser = (user) => {
-        setSelectedUser(user);
-        setIsDeleteModalOpen(true);
-    };
-
-    const handleSaveUser = async () => {
+    // Function to update a user
+    const handleUpdateUser = async () => {
         try {
+            // Prepare update data
             const updateData = {
                 id: selectedUser.id,
                 nom: selectedUser.nom,
                 email: selectedUser.email,
-                status: selectedUser.status || 'inactive'
+                status: selectedUser.status
             };
-
-            await axios.put(`http://localhost:3000/api/users/profile`, updateData, {
-                headers: { 
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+            
+            // Send API request
+            await axios.put(`${API_URL}/users/profile`, updateData, {
+                headers: { Authorization: `Bearer ${token}` }
             });
             
-            fetchUsers();
+            // Refresh user list
+            await fetchUsers();
             setIsEditModalOpen(false);
-            showNotification('Utilisateur mis à jour avec succès');
-        } catch (err) {
-            console.error('Error updating user:', err);
-            if (err.response) {
-                if (err.response.status === 403) {
-                    showNotification('Vous ne pouvez pas modifier un administrateur', 'error');
-                } else {
-                    showNotification(`Erreur: ${err.response.data.message || 'Erreur lors de la mise à jour'}`, 'error');
-                }
-            } else {
-                showNotification('Erreur lors de la mise à jour', 'error');
-            }
+            showToast('Utilisateur mis à jour avec succès', 'success');
+        } catch (error) {
+            console.error('Erreur lors de la mise à jour de l\'utilisateur:', error);
+            showToast(error.response?.data?.message || 'Erreur lors de la mise à jour de l\'utilisateur', 'error');
         }
     };
 
-    const handleDeleteConfirm = async () => {
+    // Function to delete a user
+    const handleDeleteUser = async () => {
         try {
-            await axios.delete(`http://localhost:3000/api/users/profile`, {
+            // Send API request
+            await axios.delete(`${API_URL}/users/profile`, {
                 headers: { Authorization: `Bearer ${token}` },
                 data: { id: selectedUser.id }
             });
-            fetchUsers();
+            
+            // Refresh user list
+            await fetchUsers();
             setIsDeleteModalOpen(false);
-            showNotification('Utilisateur supprimé avec succès');
-        } catch (err) {
-            console.error('Error deleting user:', err);
-            if (err.response && err.response.status === 403) {
-                showNotification('Vous ne pouvez pas supprimer un administrateur', 'error');
-            } else {
-                showNotification('Erreur lors de la suppression', 'error');
-            }
+            showToast('Utilisateur supprimé avec succès', 'success');
+        } catch (error) {
+            console.error('Erreur lors de la suppression de l\'utilisateur:', error);
+            showToast(error.response?.data?.message || 'Erreur lors de la suppression de l\'utilisateur', 'error');
         }
     };
 
-    const filteredUsers = users.filter(user => {
-        const matchesSearch = user.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            user.email.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
-        return matchesSearch && matchesStatus;
-    });
+    // Filter users based on search term
+    const filteredUsers = users.filter(user => 
+        user.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <Card>
@@ -196,210 +151,184 @@ const UserSection = () => {
                 <div className="flex gap-2">
                     <Input 
                         placeholder="Rechercher..." 
-                        className="w-[200px]" 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Filtrer par statut" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Tous les statuts</SelectItem>
-                            <SelectItem value="active">Actif</SelectItem>
-                            <SelectItem value="inactive">Inactif</SelectItem>
-                        </SelectContent>
-                    </Select>
                     <Button onClick={() => setIsAddModalOpen(true)}>
                         <FiPlus className="mr-2" />
-                        Ajouter un utilisateur
+                        Ajouter
                     </Button>
                 </div>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Nom</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Statut</TableHead>
-                            <TableHead>Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredUsers.map((user) => (
-                            <TableRow key={user.id}>
-                                <TableCell>{user.nom}</TableCell>
-                                <TableCell>{user.email}</TableCell>
-                                <TableCell>
-                                    <Badge variant={user.status === 'active' ? 'success' : 'destructive'}>
-                                        {user.status || 'inactive'}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell>
-                                    <div className="flex gap-2">
-                                        <Button 
-                                            variant="outline" 
-                                            size="sm"
-                                            onClick={() => handleEditUser(user)}
-                                        >
-                                            <FiEdit2 className="h-4 w-4" />
-                                        </Button>
-                                        <Button 
-                                            variant="destructive" 
-                                            size="sm"
-                                            onClick={() => handleDeleteUser(user)}
-                                        >
-                                            <FiTrash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </TableCell>
+                {loading ? (
+                    <div className="text-center py-4">Chargement...</div>
+                ) : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Nom</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead>Statut</TableHead>
+                                <TableHead>Actions</TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </CardContent>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredUsers.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="text-center">Aucun utilisateur trouvé</TableCell>
+                                </TableRow>
+                            ) : (
+                                filteredUsers.map((user) => (
+                                    <TableRow key={user.id}>
+                                        <TableCell>{user.nom}</TableCell>
+                                        <TableCell>{user.email}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={user.status === 'active' ? 'default' : 'destructive'}>
+                                                {user.status || 'inactive'}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex gap-2">
+                                                <Button 
+                                                    variant="outline" 
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setSelectedUser(user);
+                                                        setIsEditModalOpen(true);
+                                                    }}
+                                                >
+                                                    <FiEdit2 className="h-4 w-4" />
+                                                </Button>
+                                                <Button 
+                                                    variant="destructive" 
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setSelectedUser(user);
+                                                        setIsDeleteModalOpen(true);
+                                                    }}
+                                                >
+                                                    <FiTrash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                )}
 
-            {/* Modal d'ajout */}
-            <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Ajouter un utilisateur</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="text-sm font-medium">Nom</label>
-                            <Input
-                                placeholder="Nom de l'utilisateur"
-                                value={newUser.nom}
-                                onChange={(e) => setNewUser({ ...newUser, nom: e.target.value })}
-                            />
-                        </div>
-                        <div>
-                            <label className="text-sm font-medium">Email</label>
-                            <Input
-                                type="email"
-                                placeholder="Email de l'utilisateur"
-                                value={newUser.email}
-                                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                            />
-                        </div>
-                        <div>
-                            <label className="text-sm font-medium">Mot de passe</label>
-                            <Input
-                                type="password"
-                                placeholder="Mot de passe"
-                                value={newUser.password}
-                                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                            />
-                        </div>
-                        <div>
-                            <label className="text-sm font-medium">Statut</label>
-                            <Select
-                                value={newUser.status}
-                                onValueChange={(value) => setNewUser({ ...newUser, status: value })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Sélectionner un statut" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="active">Actif</SelectItem>
-                                    <SelectItem value="inactive">Inactif</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => {
-                            setIsAddModalOpen(false);
-                            setNewUser({ nom: '', email: '', password: '', typeUser: 'user', status: 'active' });
-                        }}>
-                            Annuler
-                        </Button>
-                        <Button onClick={handleAddUser}>
-                            Ajouter
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Modal d'édition */}
-            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Modifier l'utilisateur</DialogTitle>
-                    </DialogHeader>
-                    {selectedUser && (
+                {/* Add User Modal */}
+                <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Ajouter un utilisateur</DialogTitle>
+                        </DialogHeader>
                         <div className="space-y-4">
                             <div>
                                 <label className="text-sm font-medium">Nom</label>
                                 <Input
-                                    value={selectedUser.nom}
-                                    onChange={(e) => setSelectedUser({ ...selectedUser, nom: e.target.value })}
+                                    value={newUser.nom}
+                                    onChange={(e) => setNewUser({ ...newUser, nom: e.target.value })}
+                                    placeholder="Nom de l'utilisateur"
                                 />
                             </div>
                             <div>
                                 <label className="text-sm font-medium">Email</label>
                                 <Input
                                     type="email"
-                                    value={selectedUser.email}
-                                    onChange={(e) => setSelectedUser({ ...selectedUser, email: e.target.value })}
+                                    value={newUser.email}
+                                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                                    placeholder="Email de l'utilisateur"
                                 />
                             </div>
                             <div>
-                                <label className="text-sm font-medium">Statut</label>
-                                <Select
-                                    value={selectedUser.status}
-                                    onValueChange={(value) => setSelectedUser({ ...selectedUser, status: value })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Sélectionner un statut" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="active">Actif</SelectItem>
-                                        <SelectItem value="inactive">Inactif</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <label className="text-sm font-medium">Mot de passe</label>
+                                <Input
+                                    type="password"
+                                    value={newUser.password}
+                                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                                    placeholder="Mot de passe"
+                                />
                             </div>
                         </div>
-                    )}
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
-                            Annuler
-                        </Button>
-                        <Button onClick={handleSaveUser}>
-                            Enregistrer
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
+                                Annuler
+                            </Button>
+                            <Button onClick={handleAddUser}>
+                                Ajouter
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
-            {/* Modal de suppression */}
-            <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Confirmer la suppression</DialogTitle>
-                    </DialogHeader>
-                    <p>Êtes-vous sûr de vouloir supprimer cet utilisateur ?</p>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
-                            Annuler
-                        </Button>
-                        <Button variant="destructive" onClick={handleDeleteConfirm}>
-                            Supprimer
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                {/* Edit User Modal */}
+                <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Modifier l'utilisateur</DialogTitle>
+                        </DialogHeader>
+                        {selectedUser && (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-sm font-medium">Nom</label>
+                                    <Input
+                                        value={selectedUser.nom}
+                                        onChange={(e) => setSelectedUser({ ...selectedUser, nom: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium">Email</label>
+                                    <Input
+                                        type="email"
+                                        value={selectedUser.email}
+                                        onChange={(e) => setSelectedUser({ ...selectedUser, email: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium">Statut</label>
+                                    <select
+                                        className="w-full p-2 border rounded"
+                                        value={selectedUser.status || 'inactive'}
+                                        onChange={(e) => setSelectedUser({ ...selectedUser, status: e.target.value })}
+                                    >
+                                        <option value="active">Actif</option>
+                                        <option value="inactive">Inactif</option>
+                                    </select>
+                                </div>
+                            </div>
+                        )}
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+                                Annuler
+                            </Button>
+                            <Button onClick={handleUpdateUser}>
+                                Enregistrer
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
-            {/* Notification */}
-            {notification.show && (
-                <div className={`fixed bottom-4 right-4 p-4 rounded-lg ${
-                    notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-                } text-white`}>
-                    {notification.message}
-                </div>
-            )}
+                {/* Delete User Modal */}
+                <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Confirmer la suppression</DialogTitle>
+                        </DialogHeader>
+                        <p>Êtes-vous sûr de vouloir supprimer cet utilisateur ?</p>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
+                                Annuler
+                            </Button>
+                            <Button variant="destructive" onClick={handleDeleteUser}>
+                                Supprimer
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </CardContent>
         </Card>
     );
 };

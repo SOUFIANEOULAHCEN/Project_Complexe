@@ -1,52 +1,82 @@
-import db from '../config/db.js';
+// models/Reservation.js
+import db from "../config/db.js";
 
-export const createReservation = async (dateReservation, idUtilisateur, idEvenement) => {
+class Reservation {
+  // Get all reservations
+  static async getAllReservations() {
     try {
-        const query = 'INSERT INTO reservation (dateReservation, idUtilisateur, idEvenement) VALUES (?, ?, ?)';
-        const [result] = await db.query(query, [dateReservation, idUtilisateur, idEvenement]);
-        return result;
-    } catch (err) {
-        console.error("Erreur lors de la création de la réservation:", err);
-        throw err;
+      const [rows] = await db.query(`
+        SELECT * FROM reservation
+        ORDER BY dateReservation DESC
+      `);
+      return rows;
+    } catch (error) {
+      console.error("Error in getAllReservations:", error);
+      throw error;
     }
-};
+  }
 
-export const getAllReservations = async () => {
+  // Get reservation by ID
+  static async getReservationById(id) {
     try {
-        const [rows] = await db.query('SELECT * FROM reservation');
-        return rows;
-    } catch (err) {
-        console.error("Erreur lors de la récupération des réservations:", err);
-        throw err;
+      const [rows] = await pool.query(
+        "SELECT * FROM reservation WHERE idReservation = ?",
+        [id]
+      );
+      return rows[0];
+    } catch (error) {
+      console.error("Error in getReservationById:", error);
+      throw error;
     }
-};
+  }
 
-export const getReservationsByUser = async (idUtilisateur) => {
+  // Get reservations by user ID
+  static async getReservationsByUserId(userId) {
     try {
-        const [rows] = await db.query('SELECT * FROM reservation WHERE idUtilisateur = ?', [idUtilisateur]);
-        return rows;
-    } catch (err) {
-        console.error("Erreur lors de la récupération des réservations de l'utilisateur:", err);
-        throw err;
+      const [rows] = await pool.query(
+        "SELECT * FROM reservation WHERE idUtilisateur = ? ORDER BY dateReservation DESC",
+        [userId]
+      );
+      return rows;
+    } catch (error) {
+      console.error("Error in getReservationsByUserId:", error);
+      throw error;
     }
-};
+  }
 
-export const getReservationsByEvent = async (idEvenement) => {
+  // Create a new reservation
+  static async createReservation(reservationData) {
     try {
-        const [rows] = await db.query('SELECT * FROM reservation WHERE idEvenement = ?', [idEvenement]);
-        return rows;
-    } catch (err) {
-        console.error("Erreur lors de la récupération des réservations pour l'événement:", err);
-        throw err;
-    }
-};
+      const { dateReservation, idUtilisateur, idEvenement } = reservationData;
 
-export const deleteReservation = async (id) => {
-    try {
-        const [result] = await db.query('DELETE FROM reservation WHERE idReservation = ?', [id]);
-        return result;
-    } catch (err) {
-        console.error("Erreur lors de la suppression de la réservation:", err);
-        throw err;
+      const [result] = await pool.query(
+        `INSERT INTO reservation 
+         (dateReservation, idUtilisateur, idEvenement) 
+         VALUES (?, ?, ?)`,
+        [dateReservation, idUtilisateur, idEvenement]
+      );
+
+      return { idReservation: result.insertId, ...reservationData };
+    } catch (error) {
+      console.error("Error in createReservation:", error);
+      throw error;
     }
-};
+  }
+
+  // Delete a reservation
+  static async deleteReservation(id) {
+    try {
+      const [result] = await pool.query(
+        "DELETE FROM reservation WHERE idReservation = ?",
+        [id]
+      );
+
+      return result.affectedRows > 0;
+    } catch (error) {
+      console.error("Error in deleteReservation:", error);
+      throw error;
+    }
+  }
+}
+
+export default Reservation;

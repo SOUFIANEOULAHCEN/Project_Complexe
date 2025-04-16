@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -6,155 +7,147 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
-import axios from 'axios';
-import { format } from 'date-fns';
+import { showToast } from './Toaster';
 
 const AtelierSection = () => {
+    // State variables
     const [ateliers, setAteliers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    
+    // Modal states
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedAtelier, setSelectedAtelier] = useState(null);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
-    const { token } = useAuth();
-
+    
+    // New atelier form data
     const [newAtelier, setNewAtelier] = useState({
         nom: '',
-        description: '',
-        animateur: '',
-        date: '',
-        heure: '',
-        idCalendar: '',
+        dateDebut: '',
+        dateFin: '',
+        organisateur: '',
+        idCalendar: ''
     });
+    
+    // Get auth token
+    const { token } = useAuth();
+    
+    // API base URL
+    const API_URL = 'http://localhost:3000/api';
 
-    const showNotification = (message, type = 'success') => {
-        setNotification({ show: true, message, type });
-        setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
-    };
+    // Fetch ateliers on component mount
+    useEffect(() => {
+        fetchAteliers();
+    }, []);
 
+    // Function to fetch ateliers from API
     const fetchAteliers = async () => {
+        setLoading(true);
         try {
-            const response = await axios.get('http://localhost:3000/api/ateliers/ateliers', {
+            const response = await axios.get(`${API_URL}/ateliers/ateliers`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            
-            // Ensure the response data is an array
-            if (Array.isArray(response.data)) {
-                setAteliers(response.data);
-            } else {
-                console.error('Invalid data format received:', response.data);
-                showNotification('Erreur dans le format des données reçues', 'error');
-                setAteliers([]); // Set to empty array to prevent filter error
-            }
+            setAteliers(response.data);
+            showToast('Ateliers chargés avec succès', 'success');
         } catch (error) {
-            console.error('Erreur lors de la récupération des ateliers:', error);
-            showNotification('Erreur lors de la récupération des ateliers', 'error');
-            setAteliers([]); // Set to empty array to prevent filter error
+            console.error('Erreur lors du chargement des ateliers:', error);
+            showToast('Erreur lors du chargement des ateliers', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchAteliers();
-    }, [token]);
-
+    // Function to add a new atelier
     const handleAddAtelier = async () => {
         try {
-            if (!newAtelier.nom || !newAtelier.description || !newAtelier.animateur || !newAtelier.date || !newAtelier.heure) {
-                showNotification('Veuillez remplir tous les champs requis', 'error');
+            // Validate required fields
+            if (!newAtelier.nom || !newAtelier.dateDebut || !newAtelier.dateFin || !newAtelier.organisateur) {
+                showToast('Veuillez remplir tous les champs requis', 'error');
                 return;
             }
 
-            // Log the data being sent
-            console.log('Sending data:', newAtelier);
-
-            await axios.post('http://localhost:3000/api/ateliers/ateliers', {
-                nom: newAtelier.nom,
-                dateDebut: newAtelier.date,
-                dateFin: newAtelier.date, // Assuming dateDebut and dateFin are the same
-                organisateur: newAtelier.animateur,
-                idCalendar: newAtelier.idCalendar
-            }, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            await fetchAteliers();
-            setIsAddModalOpen(false);
-            setNewAtelier({ nom: '', description: '', animateur: '', date: '', heure: '', idCalendar: '' });
-            showNotification('Atelier ajouté avec succès');
-        } catch (err) {
-            console.error('Erreur lors de l\'ajout de l\'atelier:', err);
-            showNotification('Erreur lors de l\'ajout de l\'atelier', 'error');
-        }
-    };
-
-    const handleEditAtelier = (atelier) => {
-        setSelectedAtelier({
-            ...atelier,
-            date: atelier.dateDebut, // Ensure you're using the correct date field
-            heure: atelier.heure || '', // Default to empty string if undefined
-        });
-        setIsEditModalOpen(true);
-    };
-
-    const handleSaveAtelier = async () => {
-        try {
-            await axios.put(`http://localhost:3000/api/ateliers/ateliers/${selectedAtelier.idAtelier}`, selectedAtelier, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            await fetchAteliers();
-            setIsEditModalOpen(false);
-            showNotification('Atelier mis à jour avec succès');
-        } catch (err) {
-            console.error('Erreur lors de la mise à jour de l\'atelier:', err);
-            showNotification('Erreur lors de la mise à jour de l\'atelier', 'error');
-        }
-    };
-
-    const handleDeleteClick = (atelier) => {
-        setSelectedAtelier(atelier);
-        setIsDeleteModalOpen(true);
-    };
-
-    const handleDeleteConfirm = async () => {
-        try {
-            // Log the ID of the atelier being deleted
-            console.log('Deleting atelier with ID:', selectedAtelier.idAtelier);
-
-            await axios.delete(`http://localhost:3000/api/ateliers/ateliers/${selectedAtelier.idAtelier}`, {
+            // Send API request
+            await axios.post(`${API_URL}/ateliers/ateliers`, newAtelier, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-
+            
+            // Refresh atelier list and reset form
             await fetchAteliers();
-            setIsDeleteModalOpen(false);
-            showNotification('Atelier supprimé avec succès');
-        } catch (err) {
-            console.error('Erreur lors de la suppression de l\'atelier:', err);
-            showNotification('Erreur lors de la suppression de l\'atelier', 'error');
+            setIsAddModalOpen(false);
+            setNewAtelier({
+                nom: '',
+                dateDebut: '',
+                dateFin: '',
+                organisateur: '',
+                idCalendar: ''
+            });
+            showToast('Atelier ajouté avec succès', 'success');
+        } catch (error) {
+            console.error('Erreur lors de l\'ajout de l\'atelier:', error);
+            showToast('Erreur lors de l\'ajout de l\'atelier', 'error');
         }
     };
 
-    const filteredAteliers = Array.isArray(ateliers) ? 
-        ateliers.filter(atelier =>
-            (atelier.nom && atelier.nom.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (atelier.animateur && atelier.animateur.toLowerCase().includes(searchTerm.toLowerCase()))
-        ) : [];
+    // Function to update an atelier
+    const handleUpdateAtelier = async () => {
+        try {
+            // Send API request
+            await axios.put(`${API_URL}/ateliers/ateliers/${selectedAtelier.idAtelier}`, selectedAtelier, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            // Refresh atelier list
+            await fetchAteliers();
+            setIsEditModalOpen(false);
+            showToast('Atelier mis à jour avec succès', 'success');
+        } catch (error) {
+            console.error('Erreur lors de la mise à jour de l\'atelier:', error);
+            showToast('Erreur lors de la mise à jour de l\'atelier', 'error');
+        }
+    };
+
+    // Function to delete an atelier
+    const handleDeleteAtelier = async () => {
+        try {
+            // Send API request
+            await axios.delete(`${API_URL}/ateliers/ateliers/${selectedAtelier.idAtelier}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            // Refresh atelier list
+            await fetchAteliers();
+            setIsDeleteModalOpen(false);
+            showToast('Atelier supprimé avec succès', 'success');
+        } catch (error) {
+            console.error('Erreur lors de la suppression de l\'atelier:', error);
+            showToast('Erreur lors de la suppression de l\'atelier', 'error');
+        }
+    };
+
+    // Format date for display
+    const formatDate = (dateString) => {
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString();
+        } catch (error) {
+            return 'Date invalide';
+        }
+    };
+
+    // Filter ateliers based on search term
+    const filteredAteliers = ateliers.filter(atelier => 
+        atelier.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        atelier.organisateur?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Ateliers</CardTitle>
+                <CardTitle>Gestion des Ateliers</CardTitle>
                 <div className="flex gap-2">
-                    <Input
-                        placeholder="Rechercher..."
-                        className="w-[200px]"
+                    <Input 
+                        placeholder="Rechercher..." 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -165,98 +158,180 @@ const AtelierSection = () => {
                 </div>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Nom</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Animateur</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Heure</TableHead>
-                            <TableHead>Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredAteliers.map((atelier) => {
-                            const date = new Date(atelier.dateDebut); // Ensure you're using the correct date field
-                            const formattedDate = isNaN(date.getTime()) ? 'Date invalide' : format(date, 'dd/MM/yyyy');
-                            
-                            return (
-                                <TableRow key={atelier.idAtelier}>
-                                    <TableCell>{atelier.nom}</TableCell>
-                                    <TableCell>{atelier.description}</TableCell>
-                                    <TableCell>{atelier.animateur}</TableCell>
-                                    <TableCell>{formattedDate}</TableCell>
-                                    <TableCell>{atelier.heure}</TableCell>
-                                    <TableCell>
-                                        <div className="flex gap-2">
-                                            <Button variant="outline" size="sm" onClick={() => handleEditAtelier(atelier)}>
-                                                <FiEdit2 className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(atelier)}>
-                                                <FiTrash2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </TableCell>
+                {loading ? (
+                    <div className="text-center py-4">Chargement...</div>
+                ) : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Nom</TableHead>
+                                <TableHead>Date Début</TableHead>
+                                <TableHead>Date Fin</TableHead>
+                                <TableHead>Organisateur</TableHead>
+                                <TableHead>Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredAteliers.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center">Aucun atelier trouvé</TableCell>
                                 </TableRow>
-                            );
-                        })}
-                    </TableBody>
-                </Table>
-
-                {/* Notification */}
-                {notification.show && (
-                    <div className={`fixed bottom-4 right-4 p-4 rounded-lg ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
-                        {notification.message}
-                    </div>
+                            ) : (
+                                filteredAteliers.map((atelier) => (
+                                    <TableRow key={atelier.idAtelier}>
+                                        <TableCell>{atelier.nom}</TableCell>
+                                        <TableCell>{formatDate(atelier.dateDebut)}</TableCell>
+                                        <TableCell>{formatDate(atelier.dateFin)}</TableCell>
+                                        <TableCell>{atelier.organisateur}</TableCell>
+                                        <TableCell>
+                                            <div className="flex gap-2">
+                                                <Button 
+                                                    variant="outline" 
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setSelectedAtelier(atelier);
+                                                        setIsEditModalOpen(true);
+                                                    }}
+                                                >
+                                                    <FiEdit2 className="h-4 w-4" />
+                                                </Button>
+                                                <Button 
+                                                    variant="destructive" 
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setSelectedAtelier(atelier);
+                                                        setIsDeleteModalOpen(true);
+                                                    }}
+                                                >
+                                                    <FiTrash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
                 )}
 
-                {/* Modal d'ajout */}
+                {/* Add Atelier Modal */}
                 <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Ajouter un atelier</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
-                            <Input placeholder="Nom" value={newAtelier.nom} onChange={(e) => setNewAtelier({ ...newAtelier, nom: e.target.value })} />
-                            <Input placeholder="Description" value={newAtelier.description} onChange={(e) => setNewAtelier({ ...newAtelier, description: e.target.value })} />
-                            <Input placeholder="Animateur" value={newAtelier.animateur} onChange={(e) => setNewAtelier({ ...newAtelier, animateur: e.target.value })} />
-                            <Input type="date" value={newAtelier.date} onChange={(e) => setNewAtelier({ ...newAtelier, date: e.target.value })} />
-                            <Input type="time" value={newAtelier.heure} onChange={(e) => setNewAtelier({ ...newAtelier, heure: e.target.value })} />
-                            <Input placeholder="ID Calendar (optionnel)" value={newAtelier.idCalendar} onChange={(e) => setNewAtelier({ ...newAtelier, idCalendar: e.target.value })} />
+                            <div>
+                                <label className="text-sm font-medium">Nom</label>
+                                <Input
+                                    value={newAtelier.nom}
+                                    onChange={(e) => setNewAtelier({ ...newAtelier, nom: e.target.value })}
+                                    placeholder="Nom de l'atelier"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm font-medium">Date de début</label>
+                                <Input
+                                    type="date"
+                                    value={newAtelier.dateDebut}
+                                    onChange={(e) => setNewAtelier({ ...newAtelier, dateDebut: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm font-medium">Date de fin</label>
+                                <Input
+                                    type="date"
+                                    value={newAtelier.dateFin}
+                                    onChange={(e) => setNewAtelier({ ...newAtelier, dateFin: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm font-medium">Organisateur</label>
+                                <Input
+                                    value={newAtelier.organisateur}
+                                    onChange={(e) => setNewAtelier({ ...newAtelier, organisateur: e.target.value })}
+                                    placeholder="Nom de l'organisateur"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm font-medium">ID Calendar (optionnel)</label>
+                                <Input
+                                    value={newAtelier.idCalendar}
+                                    onChange={(e) => setNewAtelier({ ...newAtelier, idCalendar: e.target.value })}
+                                    placeholder="ID du calendrier"
+                                />
+                            </div>
                         </div>
                         <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>Annuler</Button>
-                            <Button onClick={handleAddAtelier}>Ajouter</Button>
+                            <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
+                                Annuler
+                            </Button>
+                            <Button onClick={handleAddAtelier}>
+                                Ajouter
+                            </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
 
-                {/* Modal d'édition */}
+                {/* Edit Atelier Modal */}
                 <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-                    <DialogContent aria-describedby="edit-dialog-description">
+                    <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Modifier l'atelier</DialogTitle>
                         </DialogHeader>
-                        <p id="edit-dialog-description">Utilisez ce formulaire pour modifier les détails de l'atelier.</p>
                         {selectedAtelier && (
                             <div className="space-y-4">
-                                <Input value={selectedAtelier.nom} onChange={(e) => setSelectedAtelier({ ...selectedAtelier, nom: e.target.value })} />
-                                <Input value={selectedAtelier.description} onChange={(e) => setSelectedAtelier({ ...selectedAtelier, description: e.target.value })} />
-                                <Input value={selectedAtelier.animateur} onChange={(e) => setSelectedAtelier({ ...selectedAtelier, animateur: e.target.value })} />
-                                <Input type="date" value={selectedAtelier.date ? selectedAtelier.date.split('T')[0] : ''} onChange={(e) => setSelectedAtelier({ ...selectedAtelier, date: e.target.value })} />
-                                <Input type="time" value={selectedAtelier.heure} onChange={(e) => setSelectedAtelier({ ...selectedAtelier, heure: e.target.value })} />
-                                <Input value={selectedAtelier.idCalendar || ''} onChange={(e) => setSelectedAtelier({ ...selectedAtelier, idCalendar: e.target.value })} />
+                                <div>
+                                    <label className="text-sm font-medium">Nom</label>
+                                    <Input
+                                        value={selectedAtelier.nom}
+                                        onChange={(e) => setSelectedAtelier({ ...selectedAtelier, nom: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium">Date de début</label>
+                                    <Input
+                                        type="date"
+                                        value={selectedAtelier.dateDebut?.split('T')[0]}
+                                        onChange={(e) => setSelectedAtelier({ ...selectedAtelier, dateDebut: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium">Date de fin</label>
+                                    <Input
+                                        type="date"
+                                        value={selectedAtelier.dateFin?.split('T')[0]}
+                                        onChange={(e) => setSelectedAtelier({ ...selectedAtelier, dateFin: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium">Organisateur</label>
+                                    <Input
+                                        value={selectedAtelier.organisateur}
+                                        onChange={(e) => setSelectedAtelier({ ...selectedAtelier, organisateur: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium">ID Calendar (optionnel)</label>
+                                    <Input
+                                        value={selectedAtelier.idCalendar || ''}
+                                        onChange={(e) => setSelectedAtelier({ ...selectedAtelier, idCalendar: e.target.value })}
+                                    />
+                                </div>
                             </div>
                         )}
                         <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Annuler</Button>
-                            <Button onClick={handleSaveAtelier}>Enregistrer</Button>
+                            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+                                Annuler
+                            </Button>
+                            <Button onClick={handleUpdateAtelier}>
+                                Enregistrer
+                            </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
 
-                {/* Modal de suppression */}
+                {/* Delete Atelier Modal */}
                 <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
                     <DialogContent>
                         <DialogHeader>
@@ -264,8 +339,12 @@ const AtelierSection = () => {
                         </DialogHeader>
                         <p>Êtes-vous sûr de vouloir supprimer cet atelier ?</p>
                         <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Annuler</Button>
-                            <Button variant="destructive" onClick={handleDeleteConfirm}>Supprimer</Button>
+                            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
+                                Annuler
+                            </Button>
+                            <Button variant="destructive" onClick={handleDeleteAtelier}>
+                                Supprimer
+                            </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
