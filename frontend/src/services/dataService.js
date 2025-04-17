@@ -14,3 +14,6 @@ export const getEvents = () => {
 export const getTalents = () => {
     return axios.get('/talents');
 };
+
+// Fetch users from the backend
+export const getUsers = () => axios.get('/users/users');
