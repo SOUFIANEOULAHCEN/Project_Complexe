@@ -85,53 +85,14 @@ function App() {
 
             {/* Routes du dashboard admin */}
             <Route path="/dashboard-admin" element={<AdminLayout />}>
-              <Route 
-                index 
-                element={
-                  <DashboardContent 
-                    dashboard={mockData.dashboard}
-                    users={mockData.users}
-                    spaces={mockData.spaces}
-                    reservations={mockData.reservations}
-                    comments={mockData.comments}
-                  />
-                } 
-              />
               <Route path="atelier" element={<AtelierSection />} />
-              <Route path="users" element={<UserSection users={mockData.users} />} />
-              <Route path="spaces" element={<SpaceSection spaces={mockData.spaces} />} />
-              <Route 
-                path="reservations" 
-                element={
-                  <ReservationSection 
-                    reservations={mockData.reservations}
-                    users={mockData.users}
-                    spaces={mockData.spaces}
-                  />
-                } 
-              />
-              <Route 
-                path="comments" 
-                element={
-                  <CommentsSection 
-                    comments={mockData.comments}
-                    users={mockData.users}
-                  />
-                } 
-              />
+              <Route path="users" element={<UserSection />} />
+              <Route path="spaces" element={<SpaceSection />} />
+              <Route path="reservations" element={<ReservationSection />} />
+              <Route path="comments" element={<CommentsSection />} />
               <Route path="calendar" element={<div>Calendrier</div>} />
               <Route path="system" element={<div>Système</div>} />
-              <Route 
-                path="reports" 
-                element={
-                  <ReportsSection 
-                    dashboard={mockData.dashboard}
-                    users={mockData.users}
-                    spaces={mockData.spaces}
-                    reservations={mockData.reservations}
-                  />
-                } 
-              />
+              <Route path="reports" element={<ReportsSection />} />
             </Route>
 
             {/* Routes du dashboard superadmin */}

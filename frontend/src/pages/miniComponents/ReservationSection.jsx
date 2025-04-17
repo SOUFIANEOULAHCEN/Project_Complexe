@@ -74,7 +74,7 @@ const ReservationSection = () => {
     // Function to fetch events for dropdown
     const fetchEvents = async () => {
         try {
-            const response = await axios.get(`${API_URL}/evenements`, {
+            const response = await axios.get(`${API_URL}/events`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setEvents(response.data);

@@ -28,6 +28,6 @@ router.get('/user/:userId', getReservationsByUserId);
 router.post('/', createReservation);
 
 // Delete a reservation
-router.delete('/:id', deleteReservation);
+router.delete('/:id', checkRole(['superadmin']), deleteReservation);
 
 export default router;

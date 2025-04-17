@@ -12,6 +12,8 @@ import newsletterRoutes from "./Routes/newsletterRoutes.js"; // Import newslette
 import statisticsRoutes from "./Routes/statisticsRoutes.js"; // Import statistics routes
 import commentaireRoutes from "./Routes/commentaireRoutes.js"; // Import commentaire routes
 import { connectDB } from "./config/db.js";
+import eventRoutes from './Routes/eventRoutes.js';
+import talentRoutes from './Routes/talentRoutes.js';
 
 dotenv.config();
 
@@ -41,6 +43,8 @@ app.use("/api/actualites", actualiteRoutes);
 app.use("/api/newsletters", newsletterRoutes); // Add the daddy route for newsletters
 app.use("/api/statistics", statisticsRoutes); // Add the daddy route for statistics
 app.use("/api/commentaires", commentaireRoutes); // Add the daddy route for commentaires
+app.use('/api/events', eventRoutes);
+app.use('/api/talents', talentRoutes);
 
 // Test route
 app.get("/", (req, res) => {

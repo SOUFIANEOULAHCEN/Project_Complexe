@@ -5,7 +5,7 @@ import Reservation from '../models/reservationModel.js';
 export const getAllReservations = async (req, res) => {
   try {
     const reservations = await Reservation.getAllReservations();
-    res.status(200).json(reservations);
+    res.status(200).json(reservations); // <-- returns array from DB
   } catch (error) {
     console.error('Error in getAllReservations controller:', error);
     res.status(500).json({ message: 'Erreur lors de la récupération des réservations' });
